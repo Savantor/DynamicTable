@@ -1,0 +1,484 @@
+<!-- 
+Student: Shachar Turuz
+-->
+
+<!DOCTYPE html>
+<html lang="he">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Shachar and Ofir's Assignment</title>
+    <style>
+    th{
+        
+        width: 200px;
+        text-align: right;
+        padding: 3px;
+        font-weight: bold;
+        
+    }
+    table{
+        border-collapse: collapse;
+        border-radius: 6px 10px;
+        overflow: hidden; 
+        /*
+        עיצוב של טבלת הלינקים
+        */
+    }
+#mainTbl{
+      border-collapse: collapse;
+        border-radius: 15px 25px;
+        overflow: hidden; 
+       box-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+
+       /*
+        עיצוב של הטבלה המרכזית
+        */
+}
+
+    tr:nth-child(even){
+        background-color: #ced4da;
+        /*
+        צובע כל שורה זוגית באותו הצבע 
+        */
+}
+  tr:nth-child(odd){
+        background-color: #e9ecef;
+
+         /*
+        צובע כל שורה אי-זוגית באותו הצבע 
+        */
+}
+
+.hover:hover{
+    background-color: yellow;
+}
+
+tr{
+    height: 50px;
+    width: 200px;
+    
+}
+td{
+    padding: 3px;
+}
+
+.hand{
+    cursor: pointer;
+    /*
+    הופך את העכבר ל-יד מעל כל אלמנט שניתן להקליק עליו
+    */
+}
+
+.bGColorLink{
+    background-color: #c0c0c0;
+    /*
+צבע רקע עבור תא המסמן את הדף בנוכחי בטבלת הלינקים
+    */
+}
+.sortBy{
+ border: 2px solid gold;
+ /*
+ מסמן בריבוע זהב את ראש העמודה אשר הטבלה ממויינת על פיה
+ */
+}
+
+#ths{
+    background-color:#495057;
+    color: #dee2e6;
+
+    /*
+    צבע רקע וצבע טקסט של כל ראשי העמודות
+    */
+}
+#dropMenu{
+    display: inline-block;
+}
+
+    </style>
+</head>
+<body dir="rtl">
+
+
+
+<div >
+<table id="mainTbl" ><tr id='ths'> </tr>
+<tbody id="tbl">
+</tbody>
+ </table>
+</div>
+
+<br/>
+
+<div> 
+<div id="linkTbl" style="display: inline-block;"></div>
+
+<label for="dropMenu"> סנן על פי:</label>
+<div id="dropMenu">
+
+<select class='hand' id='mySelect' name='filtering' onchange='filterTableBy()'>
+<optgroup label='-סנן על פי-'>
+<option>טבלה רגילה</option>
+<option>מניות שעלו</option>
+<option>מניות שירדו</option>
+<option>מניות בעלות שינוי הגדול מעשרה אחוזים</option>
+</optgroup>
+<optgroup label='-סינון על פי ענף-'>
+
+<option>אנרגיה</option>
+ <option>בריאות</option>
+ <option>טכנולוגיה</option>
+ <option>נדלן</option>
+ <option>פיננסים</option>
+ <option>צריכה בסיסית</option>
+ <option>תעשיה</option>
+</optgroup>
+ </select>
+</div>
+
+ </div>
+
+    <script src="sectors.js"></script>
+    <script src="dailyValues.js"></script>
+    <script>
+
+//global variables
+
+    var arrayOfShares=[];//מערך מניות מרכזי
+    var arrayOfShares2=[];//העתק מערך מניות
+
+//מערך של ראשי העמודות. דבר זה יעזור לנו בכל הקשור למיון הטבלה וכדומה
+    var thArray = [
+        {thName: "שם מניה" , colName: 'name', type:"string", currentOrder: true}, 
+        {thName: "סימן מניה" , colName: 'sign',type:"string", currentOrder: true},
+        {thName: "מספר מניה" , colName: 'number',type:"number", currentOrder: false}, 
+        {thName: "ענף מניה" , colName: 'sector',type:"string",currentOrder: true},
+        {thName: "שער פתיחה" , colName: 'open',type:"number",currentOrder: true}, 
+        {thName: "שער סיום" , colName: 'close',type:"number",currentOrder: true},
+        {thName: "אחוז שינוי יומי" , colName: 'change',type:"number",currentOrder: true}];
+        
+
+//global variables
+
+
+
+function shareInfo()
+{
+    //פונקציה זו ממזגת את שני האובייקטים לאובייקט אחד ואז יוצרת מערך של מניות כאשר כל אובייקט בה מייצג מנייה
+/*
+הלולאה יוצרת אובייקט של מנייה ואז יוצרת מערך של אובייקטים
+
+בכל איטרציה של הלולאה החיצונית נוצר ומתווסף למערך אובייקט של מנייה.
+בכל איטרציה של הלולאה הפנימית מוסף לאובייקט המנייה את ערך ענף המניה המתאים, אם יש כזה.
+
+*/
+
+    for(var x in shareValue)
+    {
+        var shareObject = {
+                    name:shareValue[x][0], 
+                    sign:shareValue[x][1], 
+                    number:x, 
+                    sector:"-" , 
+                    open:shareValue[x][2], 
+                    close:shareValue[x][3], 
+                    change: ((100*(shareValue[x][3] - shareValue[x][2]))/shareValue[x][2]).toFixed(2)
+                    };
+    
+        for(var x in sectors)
+        {
+            if(shareObject.number == x)
+            {
+            
+                shareObject.sector = sectors[x][1];
+            }
+        }
+        arrayOfShares.push(shareObject);
+    }
+        arrayOfShares2=arrayOfShares;//העתק של מערך המניות. צריך זאת עבור אופציות הסינון
+
+}
+
+ shareInfo();
+
+    function linksTable(columnForTh)
+    {
+        /*
+        פונקציה אשר אחראית על בניית טבלת הדפדוף.
+        */
+            var NumOfLinks = Math.ceil(arrayOfShares.length/10);
+            var str="";
+            str+="<table>";
+            str+="<tr>";
+            for(var i=0; i<NumOfLinks;i++)
+            {  
+            str+=`<td id='currentTD${i}' class='hover hand' onclick="cleanTable(${i *10}, ${i}, ${NumOfLinks}, '${columnForTh}')"> ${i+1} </td>`; 
+            }
+            str+="</tr>"; 
+            str+="</table>";
+            document.getElementById("linkTbl").innerHTML=str;      
+    }
+
+linksTable();
+
+        function cleanTable(index=0, currentLink=0, linkTblSize, columnForTh)
+        { 
+            /*
+            פונקציה האחראית על בניית הטבלה
+            */
+            
+
+            var table="";            
+            thBuilder(currentLink, columnForTh);//קריאה לפונקציה אשר בונה את ראשי הטבלה
+
+
+            if(linkTblSize==undefined)//התא הראשון בטבלת הלינקים יסומן כדף הנוכחי כאשר הדף נטען ונפתח
+            {
+                document.getElementById(`currentTD${currentLink}`).classList.add("bGColorLink");
+            }
+            else{
+                        for(var linkTd=0; linkTd<linkTblSize; linkTd++)//לולאה אשר צובעת את התא אשר מייצג את הדף הנוכחי בטבלת הלינקים
+                    {
+                        document.getElementById(`currentTD${linkTd}`).classList.remove("bGColorLink");
+                        document.getElementById(`currentTD${currentLink}`).classList.add("bGColorLink");
+                    } 
+                }
+
+
+            for(var i=index; i<index + 10;i++)
+            {   
+                //הטבלה תפסיק לבנות שורות נוספות כאשר נבתנה השורה של המנייה האחרונה במערך המניות
+                if(i==arrayOfShares.length)
+                    break;
+
+
+                table+="<tr id='mainTR' class='hover'>";
+                    table+=`<td>${arrayOfShares[i].name} </td>`;
+                    table+=`<td>${arrayOfShares[i].sign} </td>`;
+                    table+=`<td>${arrayOfShares[i].number} </td>`;
+                    table+=`<td>${arrayOfShares[i].sector} </td>`;
+                    table+=`<td>${arrayOfShares[i].open} </td>`;
+                    table+=`<td>${arrayOfShares[i].close} </td>`; 
+                    table+=`<td><span dir='ltr'>${arrayOfShares[i].change} %</span> </td>`;
+
+                table+="</tr>";
+            }
+                document.getElementById("tbl").innerHTML= table; 
+
+        }
+        
+
+
+    function sortColumn(column, direction, type, currentLinkPage, indexOfTh)
+    { 
+        /* 
+
+
+        פונקציה האחראית על מיון מערך האובייקטים על פי קרטריון מסויים ובניית הטבלה על פי המיון החדש.
+
+        מכיוון שבמערך יש שני סוגים של ערכים, מספר ומחרוזת, עלינו לוודט שעל כל ערך יתבצע המיון המתאים מכיוון שהמיון עבורם שונה.
+        ואם ננסה למיין מספר במיון מחרוזת נקבל תשובה שגויה.
+        */
+
+        if(type == "string"){
+    if(direction){
+    arrayOfShares.sort((a, b) => (a[column] > b[column]) ? 1 : -1)
+    thArray[indexOfTh].currentOrder=false;
+    } 
+    else{
+        arrayOfShares.sort((a, b) => (a[column] < b[column]) ? 1 : -1)
+        thArray[indexOfTh].currentOrder=true;
+    } }
+
+    if(type == "number"){
+    if(direction){
+    arrayOfShares.sort((a, b) => (Number(a[column]) > Number(b[column])) ? 1 : -1)
+    thArray[indexOfTh].currentOrder=false;
+    } 
+    else{
+        arrayOfShares.sort((a, b) => (Number(a[column]) < Number(b[column])) ? 1 : -1)
+        thArray[indexOfTh].currentOrder=true;
+    } }
+
+        //זה בדיוק החישוב ההופכי מהחישוב של כמות הלינקים, הנעשה בפונקציה שבונה את טבלת הלינקים
+        //כך נוכל למצוא את האינדקס של התא הראשון בעשרייה הנוחכית
+        let currentIndex = currentLinkPage*10;
+        cleanTable(currentIndex, currentLinkPage, undefined ,column);
+        
+    } 
+
+
+function thBuilder(currentLink, col="number")
+{ 
+    /*
+    פונקציה זו אחראית לבניית ראשי הטבלה 
+
+ערך ברירת המחדל של העמודה היא נאמבר מכיוון זו סידור ברירת המחדל של מערך המניות.
+
+    */
+    var str="";
+    
+ for(var k=0; k<thArray.length; k++)//בניית ראשי עמודות הטבלה
+    {   
+        str+=`<th id='${thArray[k].colName}' `;
+        if(col == thArray[k].colName)
+        {
+            if(thArray[k].currentOrder){
+                str+=`class='hand ' `;  
+                str+= `onclick='sortColumn("${thArray[k].colName}",${thArray[k].currentOrder},"${thArray[k].type}" ,"${currentLink}", ${k})'>`;
+                str+= ` ${thArray[k].thName}`;
+                str+=" ▼";
+                 str+= "</th>";
+            }else{
+                str+=`class='hand'`;
+                str+=`onclick='sortColumn("${thArray[k].colName}",${thArray[k].currentOrder},"${thArray[k].type}" ,"${currentLink}", ${k})'>`;
+                str+=`${thArray[k].thName}`;
+                str+=" ▲";
+                 str+= "</th>";
+            }
+        }else{
+            /*
+            we're passing true instead of the currentOrder so that every time we click a "new" click 
+            on any of the columns, which are currently not selected, the table will be ordered by an ascending order.
+            */
+                str+=`class='hand ' `;  
+                str+= `onclick='sortColumn("${thArray[k].colName}",${true},"${thArray[k].type}" ,"${currentLink}",${k})'>`;
+                str+= ` ${thArray[k].thName}`;
+                 str+= "</th>";
+        }
+    }
+   
+    document.getElementById("ths").innerHTML = str;
+
+ linksTable(col);
+ selectedCol(col);
+}
+
+
+        function selectedCol(col)
+        {//פונקציה המסמנת בריבוע זהב את העמודה שעל פיה כרגע ממויינת הטבלה
+            document.getElementById(col).classList.add("sortBy"); 
+        }
+
+        cleanTable();
+
+
+function filterTableBy(){
+    /*
+    פונקציה האחראית לסינון המערך על פי קריטריון מסוים שהמשתמש בוחר בעזרת תפריט
+    */
+        arrayOfShares=arrayOfShares2;//הצבה של כל המערך בתוך המערך שאיתו אנו עובדים
+
+        var x = document.getElementById("mySelect").selectedIndex;
+        switch (x)
+        {
+            case 0: {
+        //טבלה רגילה
+        let wholeArray = arrayOfShares.filter((val) => {
+                return val;
+            })
+
+            arrayOfShares=wholeArray;
+            }break;
+
+            case 1: {
+                //מניות שעלו
+                console.log("logg");
+        let filteredPositive = arrayOfShares.filter((val) => {
+                return val.close > val.open;
+            })
+
+        arrayOfShares=filteredPositive;
+            }break;
+
+            case 2: {
+        //מניות שירדו
+        let filteredNegative = arrayOfShares.filter((val) => {
+                return val.close < val.open;
+            })
+
+            arrayOfShares=filteredNegative;
+            }break;
+
+            case 3: {
+        //מניות שהשינוי גדול מ10
+        let filteredAbove10 = arrayOfShares.filter((val) => {
+                return val.change>10 || val.change<-10 ;
+            })
+
+            arrayOfShares=filteredAbove10;
+            }break;
+
+            case 4: {
+        //סינון על פי סקטור ארגיה
+            let filteredBySectors = arrayOfShares.filter((val) => {
+                return val.sector == "אנרגיה";
+            })
+
+            arrayOfShares=filteredBySectors;
+            }break;
+
+            case 5: {
+        //סינון על פי סקטור בריאות
+            let filteredBySectors = arrayOfShares.filter((val) => {
+                return val.sector == "בריאות";
+            })
+
+            arrayOfShares=filteredBySectors;
+            }break;
+
+                case 6: {
+        //סינון על פי סקטור טכנולוגיה
+            let filteredBySectors = arrayOfShares.filter((val) => {
+                return val.sector == "טכנולוגיה";
+            })
+
+            arrayOfShares=filteredBySectors;
+            }break;
+
+                case 7: {
+        //סינון על פי סקטור נדלן
+            let filteredBySectors = arrayOfShares.filter((val) => {
+                return val.sector == "נדלן";
+            })
+
+            arrayOfShares=filteredBySectors;
+            }break;
+
+                case 8: {
+        //סינון על פי סקטור פיננסים
+            let filteredBySectors = arrayOfShares.filter((val) => {
+                return val.sector == "פיננסים";
+            })
+
+            arrayOfShares=filteredBySectors;
+            }break;
+
+                case 9: {
+        //סינון על פי סקטור צריכה בסיסית
+            let filteredBySectors = arrayOfShares.filter((val) => {
+                return val.sector == "צריכה בסיסית";
+            })
+
+            arrayOfShares=filteredBySectors;
+            }break;
+
+            case 10: {
+        //סינון על פי סקטור תעשיה
+            let filteredBySectors = arrayOfShares.filter((val) => {
+                return val.sector == "תעשיה";
+            })
+
+            arrayOfShares=filteredBySectors;
+            }break;
+        
+        }
+
+cleanTable();
+}
+  
+
+
+    </script>
+</body>
+</html>
